@@ -8,16 +8,26 @@ import java.util.*;
 import java.text.*;
 import java.net.*;
 import java.io.*;
+import javax.crypto.*;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.*;
+import java.util.Base64;
 
 public class Client implements ActionListener {
     
+
+    private static DataOutputStream dout;
+    private static Cipher encryptCipher;
+    private static Cipher decryptCipher;
+    private static SecretKeySpec secretKeySpec;
+
     JTextField text;
     static JPanel a1;
     static Box vertical = Box.createVerticalBox();
     
     static JFrame f = new JFrame();
     
-    static DataOutputStream dout;
+    // static DataOutputStream dout;
     
     Client() {
         
@@ -106,10 +116,24 @@ public class Client implements ActionListener {
         
         f.setVisible(true);
     }
+
+
+    private static String encryptMessage(String message) throws Exception {
+        byte[] encryptedBytes = encryptCipher.doFinal(message.getBytes());
+        return Base64.getEncoder().encodeToString(encryptedBytes);
+    }
+
+    private static String decryptMessage(String encryptedMessage) throws Exception {
+        byte[] encryptedBytes = Base64.getDecoder().decode(encryptedMessage);
+        byte[] decryptedBytes = decryptCipher.doFinal(encryptedBytes);
+        return new String(decryptedBytes);
+    }
     
     public void actionPerformed(ActionEvent ae) {
         try {
             String out = text.getText();
+            String encryptedMsg = encryptMessage(out); // Encrypt message
+            dout.writeUTF(encryptedMsg); // Send encrypted message
 
             JPanel p2 = formatLabel(out);
 
@@ -161,6 +185,18 @@ public class Client implements ActionListener {
         new Client();
         
         try {
+
+            String key = "ThisIsASecretKey";
+            byte[] keyBytes = key.getBytes();
+            secretKeySpec = new SecretKeySpec(keyBytes, "AES");
+
+            // Initialize encryption and decryption ciphers
+            encryptCipher = Cipher.getInstance("AES");
+            encryptCipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+            decryptCipher = Cipher.getInstance("AES");
+            decryptCipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+
+
             Socket s = new Socket("127.0.0.1", 6001);
             DataInputStream din = new DataInputStream(s.getInputStream());
             dout = new DataOutputStream(s.getOutputStream());

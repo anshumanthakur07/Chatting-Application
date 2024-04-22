@@ -49,7 +49,7 @@ public class Server implements ActionListener {
             }
         });
         
-        ImageIcon i4 = new ImageIcon(ClassLoader.getSystemResource("icons/1.png"));
+        ImageIcon i4 = new ImageIcon(ClassLoader.getSystemResource("icons/peakpx.png"));
         Image i5 = i4.getImage().getScaledInstance(50, 50, Image.SCALE_DEFAULT);
         ImageIcon i6 = new ImageIcon(i5);
         JLabel profile = new JLabel(i6);
@@ -77,7 +77,7 @@ public class Server implements ActionListener {
         morevert.setBounds(420, 20, 10, 25);
         p1.add(morevert);
         
-        JLabel name = new JLabel("Gaitonde");
+        JLabel name = new JLabel("Shivam");
         name.setBounds(110, 15, 100, 18);
         name.setForeground(Color.WHITE);
         name.setFont(new Font("SAN_SERIF", Font.BOLD, 18));
@@ -119,11 +119,20 @@ public class Server implements ActionListener {
         return Base64.getEncoder().encodeToString(encryptedBytes);
     }
 
-    private static String decryptMessage(String encryptedMessage) throws Exception {
-        byte[] encryptedBytes = Base64.getDecoder().decode(encryptedMessage);
-        byte[] decryptedBytes = decryptCipher.doFinal(encryptedBytes);
-        return new String(decryptedBytes);
+    private static String decryptMessage(String encryptedMessage) {
+        try {
+            byte[] encryptedBytes = Base64.getDecoder().decode(encryptedMessage);
+            byte[] decryptedBytes = decryptCipher.doFinal(encryptedBytes);
+            return new String(decryptedBytes);
+        } catch (IllegalArgumentException | IllegalBlockSizeException e) {
+            System.err.println("Decryption error: " + e.getMessage());
+            return ""; // Handle the error appropriately
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ""; // Handle other exceptions
+        }
     }
+    
     
     public void actionPerformed(ActionEvent ae) {
         try {
@@ -178,34 +187,43 @@ public class Server implements ActionListener {
     }
     
     public static void main(String[] args) {
-        new Server();
-        //add encryption in the chat
+        Server server = new Server(); // Create an instance of the Server class
+        
         try {
-             
             String key = "ThisIsASecretKey";
             byte[] keyBytes = key.getBytes();
-            secretKeySpec  = new SecretKeySpec(keyBytes, "AES");
-
+            secretKeySpec = new SecretKeySpec(keyBytes, "AES");
+    
             // Initialize encryption and decryption ciphers
             encryptCipher = Cipher.getInstance("AES");
             encryptCipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
             decryptCipher = Cipher.getInstance("AES");
             decryptCipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
-
+    
             ServerSocket skt = new ServerSocket(6001);
-            while(true) {
+            
+            while (true) {
                 Socket s = skt.accept();
                 DataInputStream din = new DataInputStream(s.getInputStream());
                 dout = new DataOutputStream(s.getOutputStream());
                 
-                while(true) {
+                while (true) {
                     String msg = din.readUTF();
-                    JPanel panel = formatLabel(msg);
+                    String decryptedMsg = decryptMessage(msg);
+                    // String decryptedMsg = msg;
+                    JPanel panel = null; // Initialize panel outside the if condition
                     
-                    JPanel left = new JPanel(new BorderLayout());
-                    left.add(panel, BorderLayout.LINE_START);
-                    vertical.add(left);
-                    f.validate();
+                    if (decryptedMsg.length() > 0) {
+                        panel = formatLabel(decryptedMsg);
+                        JPanel left = new JPanel(new BorderLayout());
+                        left.add(panel, BorderLayout.LINE_START);
+                        vertical.add(left);
+                        vertical.add(Box.createVerticalStrut(15));
+                        // a1.add(vertical, BorderLayout.PAGE_START); // Add to the correct container
+                        f.validate();
+                    }
+                    
+                    System.out.println(msg + "&&&");
                 }
             }
         } catch (Exception e) {
@@ -213,5 +231,9 @@ public class Server implements ActionListener {
         }
     }
 }
+
+
+
+
 
 

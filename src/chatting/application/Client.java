@@ -10,7 +10,6 @@ import java.net.*;
 import java.io.*;
 import javax.crypto.*;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.*;
 import java.util.Base64;
 
 public class Client implements ActionListener {
@@ -51,7 +50,7 @@ public class Client implements ActionListener {
             }
         });
 
-        ImageIcon i4 = new ImageIcon(ClassLoader.getSystemResource("icons/logo.png"));
+        ImageIcon i4 = new ImageIcon(ClassLoader.getSystemResource("icons/smile.png"));
         Image i5 = i4.getImage().getScaledInstance(50, 50, Image.SCALE_DEFAULT);
         ImageIcon i6 = new ImageIcon(i5);
         JLabel profile = new JLabel(i6);
@@ -173,7 +172,7 @@ public class Client implements ActionListener {
         output.setBackground(new Color(37, 211, 102));
         output.setOpaque(true);
         output.setBorder(new EmptyBorder(15, 15, 15, 50));
-
+        
         panel.add(output);
 
         Calendar cal = Calendar.getInstance();
@@ -197,9 +196,9 @@ public class Client implements ActionListener {
             secretKeySpec = new SecretKeySpec(keyBytes, "AES");
 
             // Initialize encryption and decryption ciphers
-            encryptCipher = Cipher.getInstance("AES");
+            encryptCipher = Cipher.getInstance("AES"); 
             encryptCipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
-            decryptCipher = Cipher.getInstance("AES");
+            decryptCipher = Cipher.getInstance("AES"); 
             decryptCipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
 
             Socket s = new Socket("127.0.0.1", 6001);
@@ -209,6 +208,7 @@ public class Client implements ActionListener {
             while (true) {
                 a1.setLayout(new BorderLayout());
                 String msg = din.readUTF();
+                // System.out.println(msg+"amish ka h");
                 String decryptedMsg = decryptMessage(msg); // Decrypt message
                 // String decryptedMsg = msg; // Decrypt message
 
@@ -219,9 +219,10 @@ public class Client implements ActionListener {
                     vertical.add(left);
                     vertical.add(Box.createVerticalStrut(15));
                     a1.add(vertical, BorderLayout.PAGE_START);
-                    f.validate();
+                    f.validate();// Refresh the frame to display the new message
                 }
-                System.out.println(msg + "&&&"); // Consider removing this line as it may not be necessary
+                // System.out.println(msg + "&&&"); // Consider removing this line as it may not
+                // be necessary
             }
 
         } catch (Exception e) {
